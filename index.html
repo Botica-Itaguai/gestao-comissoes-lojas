@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestão de Comissões</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green:        #1D9E75;
+      --green-light:  #E1F5EE;
+      --green-dark:   #0F6E56;
+      --green-deep:   #085041;
+      --amber-light:  #FAEEDA;
+      --amber-dark:   #854F0B;
+      --red-light:    #FAECE7;
+      --red-dark:     #993C1D;
+      --blue-light:   #EEF2FF;
+      --blue-dark:    #3730A3;
+      --orange-light: #FEF3E2;
+      --orange-dark:  #92400E;
+      --purple-light: #F5F0FF;
+      --purple-dark:  #5B21B6;
+      --bg:           #F2F1ED;
+      --surface:      #FFFFFF;
+      --surface2:     #ECEAE4;
+      --border:       rgba(0,0,0,0.09);
+      --border-md:    rgba(0,0,0,0.16);
+      --text:         #191917;
+      --text-mid:     #55534E;
+      --text-muted:   #8A877F;
+      --r:            14px;
+      --r-sm:         9px;
+    }
+    /* Loja Digital usa tons de roxo; Botica e Lubotica mantêm o verde padrão acima */
+    #panel-D {
+      --green:        #8A3865;
+      --green-light:  #F8E7F0;
+      --green-dark:   #68274A;
+      --green-deep:   #411B30;
+    }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+
+    /* ── TOP NAV ── */
+    .top-nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; height: 54px; }
+    .nav-brand { display: flex; align-items: center; gap: 10px; }
+    .nav-logo { width: 30px; height: 30px; background: var(--green); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .nav-logo svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2.2; }
+    .nav-title    { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+    .nav-subtitle { font-size: 11.5px; color: var(--text-muted); margin-left: 4px; }
+    .store-tabs { display: flex; gap: 4px; background: var(--surface2); border-radius: 10px; padding: 4px; }
+    .store-tab { padding: 6px 18px; font-size: 13px; font-weight: 600; border-radius: 7px; border: none; cursor: pointer; background: transparent; color: var(--text-muted); font-family: inherit; transition: all 0.15s; }
+    .store-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.10); }
+
+    /* ── LAYOUT ── */
+    .store-panel { display: none; }
+    .store-panel.active { display: block; }
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 1.5rem 2rem 4rem; display: grid; grid-template-columns: 480px 1fr; gap: 2rem; align-items: start; }
+
+    /* ── AREA HEADERS ── */
+    .area-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; gap: 10px 12px; flex-wrap: wrap; }
+    .area-label  { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 3px; }
+    .area-title  { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+    .btn-group   { display: flex; gap: 8px; flex-wrap: wrap; row-gap: 8px; }
+
+    /* ── BUTTONS ── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 15px; border-radius: var(--r-sm); border: none; font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.14s; white-space: nowrap; }
+    .btn svg { width: 13px; height: 13px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-export  { background: var(--blue-light); color: var(--blue-dark); border: 1px solid rgba(99,102,241,0.18); }
+    .btn-export:hover  { background: #dde3ff; }
+    .btn-excel   { background: #E6F4EA; color: #1D6F42; border: 1px solid rgba(29,111,66,0.18); }
+    .btn-excel:hover   { background: #d4ecdb; }
+    .btn-danger  { background: var(--red-light); color: var(--red-dark); border: 1px solid rgba(153,60,29,0.12); }
+    .btn-danger:hover  { background: #f3ccc3; }
+    .btn-ghost   { background: var(--surface2); color: var(--text-mid); }
+    .btn-ghost:hover   { background: #e0ddd6; }
+    .btn-edit    { background: var(--purple-light); color: var(--purple-dark); border: 1px solid rgba(91,33,182,0.15); }
+    .btn-edit:hover    { background: #ede6ff; }
+
+    /* ── CARDS ── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; margin-bottom: 0.85rem; }
+    .card:last-child { margin-bottom: 0; }
+    .sec-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-muted); margin-bottom: 12px; }
+
+    /* ── INPUT GROUPS ── */
+    .input-row { display: flex; gap: 10px; }
+    .input-row .input-group { flex: 1; min-width: 0; }
+    .input-group { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .input-group label { font-size: 12px; color: var(--text-mid); font-weight: 500; }
+
+    /* ── CURRENCY FIELD ── */
+    .currency-field { display: flex; align-items: center; background: var(--surface2); border: 1.5px solid var(--border-md); border-radius: var(--r-sm); padding: 0 12px; min-height: 50px; cursor: text; position: relative; transition: border-color 0.15s, background 0.15s; }
+    .currency-field.focused   { border-color: var(--green); background: var(--surface); }
+    .currency-field.has-value { background: var(--surface); }
+    .currency-prefix { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-right: 6px; white-space: nowrap; user-select: none; flex-shrink: 0; }
+    .currency-field.focused .currency-prefix   { color: var(--green-dark); }
+    .currency-field.has-value .currency-prefix { color: var(--text-mid); }
+    .currency-input { flex: 1; min-width: 0; border: none; background: transparent; outline: none; font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--text); cursor: text; caret-color: var(--green); }
+    .currency-input::placeholder { color: var(--text-muted); font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 400; }
+
+    /* ── TEXT FIELD ── */
+    .text-field { display: flex; align-items: center; background: var(--surface2); border: 1.5px solid var(--border-md); border-radius: var(--r-sm); padding: 0 12px; min-height: 46px; transition: border-color 0.15s, background 0.15s; min-width: 0; }
+    .text-field:focus-within { border-color: var(--green); background: var(--surface); }
+    .text-input { flex: 1; border: none; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); outline: none; min-width: 0; width: 100%; }
+    .text-input::placeholder { color: var(--text-muted); }
+
+    /* ── INDICATOR SETUP (shared stores) ── */
+    .ind-setup-list { display: flex; flex-direction: column; gap: 10px; }
+    .ind-setup-item { border: 1.5px solid var(--border-md); border-radius: var(--r-sm); padding: 12px 14px; background: var(--bg); overflow: hidden; min-width: 0; }
+    .ind-name-row   { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; min-width: 0; }
+    .ind-badge      { width: 22px; height: 22px; border-radius: 50%; background: var(--green-light); color: var(--green-dark); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .ind-name-field-wrap { flex: 1; min-width: 0; }
+    .ind-controls-row { display: flex; gap: 10px 8px; align-items: flex-end; min-width: 0; flex-wrap: wrap; }
+    .ind-ctrl-group { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .ind-ctrl-label { font-size: 10.5px; color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+    .ind-ctrl-type  { flex: 0 0 auto; }
+    .ind-ctrl-target { flex: 1 1 90px; min-width: 90px; }
+    .ind-ctrl-scope { flex: 0 0 auto; }
+    .toggle-group { display: flex; gap: 3px; }
+    .toggle-btn { padding: 6px 8px; font-size: 11px; font-weight: 600; border-radius: 6px; border: 1.5px solid var(--border-md); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: all 0.12s; font-family: inherit; white-space: nowrap; flex-shrink: 0; }
+    .toggle-btn.active-type   { border-color: var(--green);   background: var(--green-light);   color: var(--green-dark); }
+    .toggle-btn.active-ind    { border-color: #6366F1;        background: var(--blue-light);    color: var(--blue-dark); }
+    .toggle-btn.active-shared { border-color: #D97706;        background: var(--orange-light);  color: var(--orange-dark); }
+
+    /* Compact currency field for indicator target */
+    .currency-field-sm { display: flex; align-items: center; background: var(--surface2); border: 1.5px solid var(--border-md); border-radius: var(--r-sm); padding: 0 10px; min-height: 40px; cursor: text; position: relative; transition: border-color 0.15s, background 0.15s; min-width: 0; }
+    .currency-field-sm.focused   { border-color: var(--green); background: var(--surface); }
+    .currency-field-sm.has-value { background: var(--surface); }
+    .currency-field-sm .currency-prefix  { font-size: 11px; }
+    .currency-field-sm .currency-input   { font-size: 13px; }
+    .currency-field-sm .currency-input::placeholder { font-size: 12px; }
+
+    /* ── SELLERS LIST ── */
+    .sellers-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+    .seller-chip  { display: flex; align-items: center; gap: 9px; padding: 8px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-sm); }
+    .seller-avatar { width: 28px; height: 28px; border-radius: 7px; background: var(--green-light); color: var(--green-dark); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .seller-chip-name { flex: 1; font-size: 13.5px; font-weight: 500; }
+    .btn-remove { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 18px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: color 0.12s; }
+    .btn-remove:hover { color: var(--red-dark); }
+    .add-seller-row { display: flex; gap: 8px; }
+
+    /* ── PROGRESS BAR ── */
+    .prog-wrap { margin-top: 12px; }
+    .prog-top  { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+    .prog-track { height: 7px; background: var(--surface2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+    .prog-fill  { height: 100%; width: 0%; background: var(--green); border-radius: 4px; transition: width 0.3s ease; }
+    .prog-ticks { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10.5px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+    /* ── STATUS BADGE ── */
+    .status-row { display: flex; align-items: center; gap: 7px; margin-top: 10px; }
+    .status-lbl { font-size: 12px; color: var(--text-muted); }
+    .badge { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+    .b-m0 { background: var(--red-light);   color: var(--red-dark); }
+    .b-m1 { background: var(--amber-light); color: var(--amber-dark); }
+    .b-m2 { background: var(--green-light); color: var(--green-deep); }
+
+    /* ── META PILLS ── */
+    .meta-pills-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+    .meta-pills { display: flex; gap: 8px; margin-bottom: 4px; }
+    .meta-pill  { flex: 1; padding: 8px 12px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--surface2); }
+    .meta-pill-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px; }
+    .meta-pill-val   { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 500; color: var(--text-mid); }
+    .meta-pill-sub   { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── SELLER RESULT CARD ── */
+    .seller-result-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 0.85rem; overflow: hidden; }
+    .seller-result-card:last-child { margin-bottom: 0; }
+    .src-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface2); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; transition: background 0.13s; }
+    .src-header:hover { background: #e4e1da; }
+    .src-avatar { width: 34px; height: 34px; border-radius: 8px; background: var(--green); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .src-name { flex: 1; font-size: 15px; font-weight: 600; }
+    .src-info-pills { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .src-info-pill  { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+    .sip-none { background: var(--red-light);    color: var(--red-dark); }
+    .sip-m1   { background: var(--amber-light);  color: var(--amber-dark); }
+    .sip-m2   { background: var(--green-light);  color: var(--green-deep); }
+    .sip-inds { background: var(--surface2);     color: var(--text-mid);  border: 1px solid var(--border-md); }
+    .src-summary    { text-align: right; flex-shrink: 0; }
+    .src-commission { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 600; color: var(--green); }
+    .src-pct        { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .src-chevron    { color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
+    .src-header.open .src-chevron { transform: rotate(180deg); }
+    .src-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .src-body.collapsed { display: none; }
+
+    /* ── INDICATOR RESULT ITEMS ── */
+    .ind-result-section-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-muted); margin-bottom: 8px; }
+    .ind-result-list { display: flex; flex-direction: column; gap: 7px; }
+    .ind-result-item { border: 1.5px solid var(--border-md); border-radius: var(--r-sm); background: var(--surface); overflow: hidden; }
+    .ind-result-item.on { border-color: var(--green); }
+    .ind-result-top { display: flex; align-items: center; gap: 10px; padding: 11px 14px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: background 0.12s; }
+    .ind-result-top:hover { background: var(--surface2); }
+    .ind-result-item.on .ind-result-top { background: var(--green-light); }
+    .ind-box { width: 22px; height: 22px; border-radius: 5px; border: 2px solid var(--border-md); background: var(--surface); flex-shrink: 0; position: relative; }
+    .ind-result-item.on .ind-box { background: var(--green); border-color: var(--green); }
+    .ind-box::after { content: ''; display: none; position: absolute; left: 4px; top: 1px; width: 5px; height: 10px; border: 2px solid #fff; border-top: none; border-left: none; transform: rotate(45deg); }
+    .ind-result-item.on .ind-box::after { display: block; }
+    .ind-result-name  { flex: 1; font-size: 13.5px; font-weight: 500; min-width: 0; }
+    .ind-result-item.on .ind-result-name { color: var(--green-dark); }
+    .ind-result-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .ind-pct-label  { font-size: 11px; font-weight: 600; color: var(--green-dark); font-family: 'DM Mono', monospace; }
+    .ind-scope-tag  { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+    .tag-ind    { background: var(--blue-light);   color: var(--blue-dark); }
+    .tag-shared { background: var(--orange-light); color: var(--orange-dark); }
+    .ind-result-body { padding: 9px 14px 11px; border-top: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .ind-realizado-label { font-size: 11.5px; color: var(--text-muted); flex-shrink: 0; }
+    .ind-realizado-wrap { display: flex; align-items: center; background: var(--surface2); border: 1.5px solid var(--border-md); border-radius: var(--r-sm); padding: 0 10px; height: 38px; min-width: 130px; max-width: 200px; position: relative; transition: border-color 0.14s, background 0.14s; cursor: text; flex-shrink: 0; }
+    .ind-realizado-wrap.focused   { border-color: var(--green); background: var(--surface); }
+    .ind-realizado-wrap.has-value { background: var(--surface); }
+    .ind-realizado-prefix { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-right: 5px; flex-shrink: 0; user-select: none; }
+    .ind-realizado-wrap.focused .ind-realizado-prefix   { color: var(--green-dark); }
+    .ind-realizado-wrap.has-value .ind-realizado-prefix { color: var(--text-mid); }
+    .ind-realizado-input { flex: 1; min-width: 0; border: none; background: transparent; outline: none; font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: var(--text); cursor: text; caret-color: var(--green); }
+    .ind-realizado-input::placeholder { color: var(--text-muted); font-size: 12px; font-family: 'DM Sans', sans-serif; font-weight: 400; }
+    .ind-target-display { font-size: 11px; color: var(--text-muted); flex-shrink: 0; font-family: 'DM Mono', monospace; }
+    .ind-footer { margin-top: 10px; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .ind-footer strong { color: var(--text); font-weight: 600; }
+
+    /* ── BREAKDOWN ── */
+    .result-card  { border: 2px solid var(--green); border-radius: var(--r); overflow: hidden; }
+    .result-head  { background: var(--green); padding: 11px 18px; }
+    .result-head p { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.88); }
+    .result-body  { padding: 0 18px; background: var(--surface); }
+    .rr           { display: flex; justify-content: space-between; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--border); }
+    .rr:last-child { border-bottom: none; }
+    .rr.sub       { padding: 7px 0 7px 14px; border-bottom: 1px dashed var(--border); }
+    .rr.final     { border-top: 2px solid var(--border-md); padding: 13px 0; border-bottom: none; }
+    .rl           { font-size: 13.5px; color: var(--text-mid); }
+    .rl.main      { font-size: 14.5px; font-weight: 600; color: var(--text); }
+    .rl.sub       { font-size: 12.5px; }
+    .rv           { font-family: 'DM Mono', monospace; font-size: 13.5px; font-weight: 500; color: var(--text); text-align: right; }
+    .rv.g         { color: var(--green-dark); }
+    .rv.m         { color: var(--text-muted); font-weight: 400; }
+    .rv.big       { font-size: 22px; font-weight: 600; color: var(--green); }
+    .detail       { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-family: 'DM Mono', monospace; line-height: 1.55; }
+    .col          { display: flex; flex-direction: column; }
+
+    /* ── SUMMARY BAR ── */
+    .summary-bar { display: flex; gap: 0; margin-bottom: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+    .sum-item     { flex: 1; padding: 14px 18px; text-align: center; }
+    .sum-item + .sum-item { border-left: 1px solid var(--border); }
+    .sum-val { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 600; color: var(--green); }
+    .sum-lbl { font-size: 10.5px; color: var(--text-muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+    .empty-state p     { font-size: 14px; }
+    .empty-state small { font-size: 12px; margin-top: 4px; display: block; }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--text); color: #fff; font-size: 13px; font-weight: 500; padding: 10px 20px; border-radius: 8px; transform: translateY(10px); opacity: 0; transition: all 0.2s ease; pointer-events: none; z-index: 999; box-shadow: 0 4px 18px rgba(0,0,0,0.2); }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── EXPORT OVERLAY ── */
+    #export-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    #export-overlay.show { opacity: 1; pointer-events: all; }
+    .export-spinner { background: var(--surface); border-radius: var(--r); padding: 28px 36px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+    .export-spinner p { font-size: 14px; color: var(--text-mid); margin-top: 10px; }
+    .spinner-ring { width: 32px; height: 32px; border: 3px solid var(--surface2); border-top-color: var(--green); border-radius: 50%; margin: 0 auto; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── LOJA DIGITAL — info banner (mesma lógica de Botica/Lubotica, com regras próprias de comissão) ── */
+    .vd-info-banner { background: var(--purple-light); border: 1px solid rgba(91,33,182,0.18); border-radius: var(--r-sm); padding: 10px 14px; margin-bottom: 12px; font-size: 12.5px; color: var(--purple-dark); line-height: 1.5; }
+    .vd-info-banner strong { font-weight: 700; }
+
+    /* also for setup */
+    .currency-field-sm .time-input-sm { flex: 1; border: none; background: transparent; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); outline: none; width: 100%; }
+    .currency-field-sm .time-input-sm::placeholder { color: var(--text-muted); font-size: 11px; font-family: 'DM Sans', sans-serif; }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-brand">
+    <div class="nav-logo"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+    <span class="nav-title">Gestão de Comissões</span>
+    <span class="nav-subtitle">— Painel da Gerente</span>
+  </div>
+  <div class="store-tabs">
+    <button class="store-tab active" id="tab-A" onclick="switchStore('A')">Botica</button>
+    <button class="store-tab"        id="tab-B" onclick="switchStore('B')">Lubotica</button>
+    <button class="store-tab"        id="tab-D" onclick="switchStore('D')">Loja Digital</button>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+<div id="export-overlay"><div class="export-spinner"><div class="spinner-ring"></div><p>Gerando imagem…</p></div></div>
+
+<!-- ══════ BOTICA ══════ -->
+<div class="store-panel active" id="panel-A">
+  <div class="page-wrap" id="A-page-wrap">
+    <div id="A-left">
+      <div class="area-header">
+        <div><div class="area-label">Botica</div><div class="area-title">Cadastro de Metas</div></div>
+        <div class="btn-group">
+          <button class="btn btn-danger"  onclick="clearStore('A')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Apagar tudo</button>
+          <button class="btn btn-export"  onclick="exportPNG('A')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar PNG</button>
+          <button class="btn btn-excel"   onclick="exportExcelAll()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="19"/><line x1="16" y1="13" x2="8" y2="19"/></svg>Exportar Excel</button>
+          <button class="btn btn-primary" onclick="saveStore('A')"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
+        </div>
+      </div>
+      <div class="card">
+        <p class="sec-label">Metas Financeiras da Loja</p>
+        <div class="vd-info-banner">Comissão sobre as vendas: <strong>1%</strong> ao atingir M1 e <strong>2%</strong> ao atingir M2. Se nenhuma meta for atingida, comissão financeira <strong>0,5%</strong>.</div>
+        <div class="input-row">
+          <div class="input-group"><label>Meta M1</label><div class="currency-field" id="A-wrap-m1"><span class="currency-prefix">R$</span><input class="currency-input" type="text" inputmode="decimal" id="A-m1" placeholder="0,00" autocomplete="off" oninput="onCurrencyInput('A-m1');onMetaChange('A')" /></div></div>
+          <div class="input-group"><label>Meta M2</label><div class="currency-field" id="A-wrap-m2"><span class="currency-prefix">R$</span><input class="currency-input" type="text" inputmode="decimal" id="A-m2" placeholder="0,00" autocomplete="off" oninput="onCurrencyInput('A-m2');onMetaChange('A')" /></div></div>
+        </div>
+        <div class="input-group" style="margin-top:10px"><label>Observação (opcional)</label><div class="text-field"><input class="text-input" type="text" id="A-obs" placeholder="Ex: Maio/2025, Ciclo 3…" /></div></div>
+      </div>
+      <div class="card"><p class="sec-label">Indicadores (4 fixos)</p><div class="vd-info-banner">Cada indicador atingido garante <strong>+0,25%</strong> de comissão sobre a venda.</div><div class="ind-setup-list" id="A-ind-setup"></div></div>
+      <div class="card"><p class="sec-label">Vendedoras da Loja</p><div class="sellers-list" id="A-sellers-list"></div><div class="add-seller-row"><div class="text-field" style="flex:1"><input class="text-input" type="text" id="A-new-seller" placeholder="Nome da vendedora…" onkeydown="if(event.key==='Enter')addSeller('A')" /></div><button class="btn btn-ghost" onclick="addSeller('A')">+ Adicionar</button></div></div>
+    </div>
+    <div id="A-right">
+      <div class="area-header"><div><div class="area-label">Botica</div><div class="area-title">Resultado por Vendedora</div></div></div>
+      <div class="summary-bar" id="A-summary-bar" style="display:none">
+        <div class="sum-item"><div class="sum-val" id="A-sc-n">0</div><div class="sum-lbl">Vendedoras</div></div>
+        <div class="sum-item"><div class="sum-val" id="A-sc-v">R$ 0,00</div><div class="sum-lbl">Total Vendido Botica</div></div>
+        <div class="sum-item"><div class="sum-val" id="A-sc-c">R$ 0,00</div><div class="sum-lbl">Total Comissão</div></div>
+      </div>
+      <div id="A-results"><div class="empty-state"><p>Nenhuma vendedora cadastrada</p><small>Adicione vendedoras no Cadastro de Metas para começar.</small></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ LUBOTICA ══════ -->
+<div class="store-panel" id="panel-B">
+  <div class="page-wrap" id="B-page-wrap">
+    <div id="B-left">
+      <div class="area-header">
+        <div><div class="area-label">Lubotica</div><div class="area-title">Cadastro de Metas</div></div>
+        <div class="btn-group">
+          <button class="btn btn-danger"  onclick="clearStore('B')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Apagar tudo</button>
+          <button class="btn btn-export"  onclick="exportPNG('B')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar PNG</button>
+          <button class="btn btn-excel"   onclick="exportExcelAll()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="19"/><line x1="16" y1="13" x2="8" y2="19"/></svg>Exportar Excel</button>
+          <button class="btn btn-primary" onclick="saveStore('B')"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
+        </div>
+      </div>
+      <div class="card">
+        <p class="sec-label">Metas Financeiras da Loja</p>
+        <div class="vd-info-banner">Comissão sobre as vendas: <strong>1%</strong> ao atingir M1 e <strong>2%</strong> ao atingir M2. Se nenhuma meta for atingida, comissão financeira <strong>0,5%</strong>.</div>
+        <div class="input-row">
+          <div class="input-group"><label>Meta M1</label><div class="currency-field" id="B-wrap-m1"><span class="currency-prefix">R$</span><input class="currency-input" type="text" inputmode="decimal" id="B-m1" placeholder="0,00" autocomplete="off" oninput="onCurrencyInput('B-m1');onMetaChange('B')" /></div></div>
+          <div class="input-group"><label>Meta M2</label><div class="currency-field" id="B-wrap-m2"><span class="currency-prefix">R$</span><input class="currency-input" type="text" inputmode="decimal" id="B-m2" placeholder="0,00" autocomplete="off" oninput="onCurrencyInput('B-m2');onMetaChange('B')" /></div></div>
+        </div>
+        <div class="input-group" style="margin-top:10px"><label>Observação (opcional)</label><div class="text-field"><input class="text-input" type="text" id="B-obs" placeholder="Ex: Maio/2025, Ciclo 3…" /></div></div>
+      </div>
+      <div class="card"><p class="sec-label">Indicadores (4 fixos)</p><div class="vd-info-banner">Cada indicador atingido garante <strong>+0,25%</strong> de comissão sobre a venda.</div><div class="ind-setup-list" id="B-ind-setup"></div></div>
+      <div class="card"><p class="sec-label">Vendedoras da Loja</p><div class="sellers-list" id="B-sellers-list"></div><div class="add-seller-row"><div class="text-field" style="flex:1"><input class="text-input" type="text" id="B-new-seller" placeholder="Nome da vendedora…" onkeydown="if(event.key==='Enter')addSeller('B')" /></div><button class="btn btn-ghost" onclick="addSeller('B')">+ Adicionar</button></div></div>
+    </div>
+    <div id="B-right">
+      <div class="area-header"><div><div class="area-label">Lubotica</div><div class="area-title">Resultado por Vendedora</div></div></div>
+      <div class="summary-bar" id="B-summary-bar" style="display:none">
+        <div class="sum-item"><div class="sum-val" id="B-sc-n">0</div><div class="sum-lbl">Vendedoras</div></div>
+        <div class="sum-item"><div class="sum-val" id="B-sc-v">R$ 0,00</div><div class="sum-lbl">Total Vendido Lubotica</div></div>
+        <div class="sum-item"><div class="sum-val" id="B-sc-c">R$ 0,00</div><div class="sum-lbl">Total Comissão</div></div>
+      </div>
+      <div id="B-results"><div class="empty-state"><p>Nenhuma vendedora cadastrada</p><small>Adicione vendedoras no Cadastro de Metas para começar.</small></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ LOJA DIGITAL ══════ -->
+<div class="store-panel" id="panel-D">
+  <div class="page-wrap" id="D-page-wrap">
+    <div id="D-left">
+      <div class="area-header">
+        <div><div class="area-label">Loja Digital</div><div class="area-title">Cadastro de Metas</div></div>
+        <div class="btn-group">
+          <button class="btn btn-danger"  onclick="clearStore('D')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Apagar tudo</button>
+          <button class="btn btn-export"  onclick="exportPNG('D')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar PNG</button>
+          <button class="btn btn-excel"   onclick="exportExcelAll()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="19"/><line x1="16" y1="13" x2="8" y2="19"/></svg>Exportar Excel</button>
+          <button class="btn btn-primary" onclick="saveStore('D')"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
+        </div>
+      </div>
+      <div class="card">
+        <p class="sec-label">Metas Financeiras da Loja</p>
+        <div class="vd-info-banner">Comissão sobre as vendas: <strong>2,5%</strong> ao atingir M1 e <strong>5%</strong> ao atingir M2. Se nenhuma meta for atingida, não há comissão financeira (0%).</div>
+        <div class="input-row">
+          <div class="input-group"><label>Meta M1</label><div class="currency-field" id="D-wrap-m1"><span class="currency-prefix">R$</span><input class="currency-input" type="text" inputmode="decimal" id="D-m1" placeholder="0,00" autocomplete="off" oninput="onCurrencyInput('D-m1');onMetaChange('D')" /></div></div>
+          <div class="input-group"><label>Meta M2</label><div class="currency-field" id="D-wrap-m2"><span class="currency-prefix">R$</span><input class="currency-input" type="text" inputmode="decimal" id="D-m2" placeholder="0,00" autocomplete="off" oninput="onCurrencyInput('D-m2');onMetaChange('D')" /></div></div>
+        </div>
+        <div class="input-group" style="margin-top:10px"><label>Observação (opcional)</label><div class="text-field"><input class="text-input" type="text" id="D-obs" placeholder="Ex: Junho/2026, Ciclo 4…" /></div></div>
+      </div>
+      <div class="card">
+        <p class="sec-label">Indicadores (4 fixos)</p>
+        <div class="vd-info-banner">Cada indicador atingido garante um bônus fixo de <strong>R$ 225,00</strong> (não é % da comissão). Se nenhum indicador for atingido, não há bônus de indicadores.</div>
+        <div class="ind-setup-list" id="D-ind-setup"></div>
+      </div>
+      <div class="card"><p class="sec-label">Vendedoras da Loja</p><div class="sellers-list" id="D-sellers-list"></div><div class="add-seller-row"><div class="text-field" style="flex:1"><input class="text-input" type="text" id="D-new-seller" placeholder="Nome da vendedora…" onkeydown="if(event.key==='Enter')addSeller('D')" /></div><button class="btn btn-ghost" onclick="addSeller('D')">+ Adicionar</button></div></div>
+    </div>
+    <div id="D-right">
+      <div class="area-header"><div><div class="area-label">Loja Digital</div><div class="area-title">Resultado por Vendedora</div></div></div>
+      <div class="summary-bar" id="D-summary-bar" style="display:none">
+        <div class="sum-item"><div class="sum-val" id="D-sc-n">0</div><div class="sum-lbl">Vendedoras</div></div>
+        <div class="sum-item"><div class="sum-val" id="D-sc-v">R$ 0,00</div><div class="sum-lbl">Total Vendido Loja Digital</div></div>
+        <div class="sum-item"><div class="sum-val" id="D-sc-c">R$ 0,00</div><div class="sum-lbl">Total Comissão</div></div>
+      </div>
+      <div id="D-results"><div class="empty-state"><p>Nenhuma vendedora cadastrada</p><small>Adicione vendedoras no Cadastro de Metas para começar.</small></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* ════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════ */
+function fmtBRL(v, dec) {
+  dec = (dec === undefined) ? 2 : dec;
+  return Number(v).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+function toR(v) { return 'R$\u00a0' + fmtBRL(v, 2); }
+function fmtK(v) {
+  if (v >= 1e6) return fmtBRL(v/1e6, 1)+'M';
+  if (v >= 1e3) return fmtBRL(v/1e3, 0)+'k';
+  return fmtBRL(v, 0);
+}
+function initials(name) { return name.trim().split(/\s+/).slice(0,2).map(function(w){return w[0].toUpperCase();}).join(''); }
+function safeId(name)   { return name.replace(/[^a-zA-Z0-9]/g,'_'); }
+function e1Q(s)         { return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function escH(s)        { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function g(id)          { return document.getElementById(id); }
+function se(id,v)       { var e=g(id); if(e) e.textContent=v; }
+function sc(id,c)       { var e=g(id); if(e) e.className=c; }
+function ss(id,p,v)     { var e=g(id); if(e) e.style[p]=v; }
+function siH(id,v)      { var e=g(id); if(e) e.innerHTML=v; }
+
+/* ════════════════════════════════════════════
+   CURRENCY FIELD LOGIC
+   Os campos agora usam um <input> de texto visível (sem overlay
+   invisível), então o cursor nativo do navegador aparece e a posição
+   de clique é respeitada. A formatação (separador de milhar/decimal)
+   só é aplicada ao perder o foco — durante a digitação o texto não é
+   reescrito, preservando a posição do cursor.
+════════════════════════════════════════════ */
+window.focusHidden = function(id) { var el=g(id); if(el) el.focus(); };
+
+function parseCID(id) {
+  var dash=id.indexOf('-'); return { p: id.slice(0,dash), f: id.slice(dash+1) };
+}
+
+/* Interpreta texto digitado em formato BR (1.234,56) ou livre (1234.56 / 1234,56) */
+function parseBRNumber(str) {
+  if (str===null || str===undefined) return NaN;
+  str = String(str).trim();
+  if (str==='') return NaN;
+  var neg = /^-/.test(str);
+  str = str.replace(/[^0-9.,]/g,'');
+  if (str==='') return NaN;
+  var hasComma = str.indexOf(',')!==-1;
+  var hasDot   = str.indexOf('.')!==-1;
+  var normalized;
+  if (hasComma && hasDot) {
+    normalized = str.replace(/\./g,'').replace(',', '.');
+  } else if (hasComma) {
+    normalized = str.replace(',', '.');
+  } else if (hasDot) {
+    var parts = str.split('.');
+    var isGroup = parts.length>1 && parts[0].length<=3 && parts.slice(1).every(function(p){return p.length===3;});
+    normalized = isGroup ? str.replace(/\./g,'') : str;
+  } else {
+    normalized = str;
+  }
+  var n = parseFloat(normalized);
+  if (isNaN(n)) return NaN;
+  return neg ? -Math.abs(n) : n;
+}
+window.parseBRNumber = parseBRNumber;
+
+/* Campos de "Tempo" representam MINUTOS:SEGUNDOS (não horas). Sem separador ':',
+   todos os dígitos digitados são interpretados como minutos (ex: "9" -> "09:00",
+   "180" -> "180:00", para durações acima de uma hora). Com ':', a parte da
+   esquerda é minutos (sem limite) e a da direita é segundos (0-59). */
+function normalizeTimeToMMSS(str) {
+  str = String(str||'').trim();
+  if (!str) return '';
+  if (str.indexOf(':')!==-1) {
+    var parts = str.split(':');
+    var minDigits = (parts[0]||'').replace(/[^0-9]/g,'');
+    var secDigits = (parts[1]||'').replace(/[^0-9]/g,'');
+    if (!minDigits && !secDigits) return '';
+    var mm = minDigits===''?'0':minDigits;
+    var ssNum = Math.min(parseInt(secDigits||'0',10)||0, 59);
+    return mm.padStart(2,'0')+':'+String(ssNum).padStart(2,'0');
+  } else {
+    var digits = str.replace(/[^0-9]/g,'');
+    if (digits==='') return '';
+    return digits.padStart(2,'0')+':00';
+  }
+}
+window.normalizeTimeToMMSS = normalizeTimeToMMSS;
+
+/* Ao sair do campo (blur): normaliza para "1.234,56" e alterna a classe has-value.
+   Retorna o número interpretado (ou null se vazio/inválido). */
+function fmtInputOnBlur(input, wrap) {
+  if (!input) return null;
+  var n = parseBRNumber(input.value);
+  if (isNaN(n) || n<0) { input.value=''; if(wrap) wrap.classList.remove('has-value'); return null; }
+  input.value = fmtBRL(n,2);
+  if (wrap) wrap.classList.add('has-value');
+  return n;
+}
+
+/* Define o valor de um campo de moeda a partir de um número (usado ao carregar/limpar dados) */
+function setCurrencyValue(id, num) {
+  var input=g(id); if(!input) return;
+  var parts=parseCID(id); var wrap=g(parts.p+'-wrap-'+parts.f);
+  if (num) { input.value=fmtBRL(num,2); if(wrap) wrap.classList.add('has-value'); }
+  else     { input.value=''; if(wrap) wrap.classList.remove('has-value'); }
+}
+
+/* Toque leve durante a digitação: só alterna o fundo "preenchido", sem reformatar */
+window.onCurrencyInput = function(id){
+  var input=g(id); var parts=parseCID(id); var wrap=g(parts.p+'-wrap-'+parts.f);
+  if (input && wrap) wrap.classList.toggle('has-value', input.value.trim()!=='');
+};
+
+function wireCF(id) {
+  var input=g(id); if(!input) return;
+  var parts=parseCID(id); var wrap=g(parts.p+'-wrap-'+parts.f);
+  input.addEventListener('focus', function(){ if(wrap) wrap.classList.add('focused'); });
+  input.addEventListener('blur',  function(){ if(wrap) wrap.classList.remove('focused'); fmtInputOnBlur(input, wrap); });
+}
+['A-m1','A-m2','B-m1','B-m2','D-m1','D-m2'].forEach(wireCF);
+
+/* ════════════════════════════════════════════
+   TABS
+════════════════════════════════════════════ */
+window.switchStore = function(s) {
+  ['A','B','D'].forEach(function(k){
+    g('panel-'+k).classList.toggle('active', k===s);
+    g('tab-'+k).classList.toggle('active', k===s);
+  });
+};
+
+/* ════════════════════════════════════════════
+   STORES A & B — shared state & logic
+════════════════════════════════════════════ */
+function defaultStore() {
+  return {
+    m1:0, m2:0, obs:'',
+    indicators:[
+      {name:'',type:'R$',target:'',scope:'individual'},
+      {name:'',type:'R$',target:'',scope:'individual'},
+      {name:'',type:'R$',target:'',scope:'individual'},
+      {name:'',type:'R$',target:'',scope:'individual'}
+    ],
+    sellers:[], results:{}
+  };
+}
+var stores = { A: defaultStore(), B: defaultStore(), D: defaultStore() };
+
+/* ── Regras de comissão por loja ──
+   A/B (Botica/Lubotica): baseline 0,5%, M1 = 1%, M2 = 2%; cada indicador = +0,25 p.p. da comissão.
+   D  (Loja Digital):     sem meta = 0%, M1 = 2,5%, M2 = 5%; cada indicador = bônus fixo de R$ 225. */
+var STORE_CFG = {
+  A: { baseline:0.5, m1Pct:1,   m2Pct:2, indMode:'pct',   indAmt:0.25 },
+  B: { baseline:0.5, m1Pct:1,   m2Pct:2, indMode:'pct',   indAmt:0.25 },
+  D: { baseline:0,   m1Pct:2.5, m2Pct:5, indMode:'fixed', indAmt:225 }
+};
+
+/* ── Indicator setup ── */
+function renderIndSetup(s) {
+  var el=g(s+'-ind-setup'); el.innerHTML='';
+  stores[s].indicators.forEach(function(ind,idx){ el.appendChild(buildIndSetupItem(s,idx,ind)); });
+}
+
+function buildIndSetupItem(s,idx,ind) {
+  var wrap=document.createElement('div'); wrap.className='ind-setup-item'; wrap.id=s+'-ii-'+idx;
+  var types=['R$','QTD','%','Tempo'];
+  var typeBtns=types.map(function(t){
+    var cls=ind.type===t?' active-type':'';
+    return '<button class="toggle-btn'+cls+'" onclick="setIndProp(\''+s+'\','+idx+',\'type\',\''+t+'\')">'+t+'</button>';
+  }).join('');
+  var scopeIC=ind.scope==='individual'?' active-ind':'';
+  var scopeSC=ind.scope==='shared'?' active-shared':'';
+  var prefix=ind.type==='R$'?'R$':(ind.type==='%'?'%':(ind.type==='Tempo'?'⏱':'#'));
+  var tHV=ind.target?' has-value':'';
+  var tInitVal=ind.target?fmtBRL(parseBRNumber(ind.target)||0,2):'';
+
+  var targetField;
+  if(ind.type==='Tempo') {
+    targetField=
+      '<div class="currency-field-sm'+tHV+'" id="'+s+'-wrap-it-'+idx+'" style="padding:0 10px;min-height:40px">'+
+        '<input class="time-input-sm" type="text" id="'+s+'-it-'+idx+'" placeholder="00:00" maxlength="9"'+
+          ' value="'+escH(ind.target||'')+'" oninput="onIndTimeInput(\''+s+'\','+idx+',this)" />'+
+      '</div>';
+  } else {
+    targetField=
+      '<div class="currency-field-sm'+tHV+'" id="'+s+'-wrap-it-'+idx+'">'+
+        '<span class="currency-prefix" id="'+s+'-ip-'+idx+'">'+prefix+'</span>'+
+        '<input class="currency-input" type="text" inputmode="decimal" id="'+s+'-it-'+idx+'" placeholder="0,00" value="'+escH(tInitVal)+'" autocomplete="off" oninput="onIndTargetInput(\''+s+'\','+idx+',this.value)" />'+
+      '</div>';
+  }
+
+  wrap.innerHTML=
+    '<div class="ind-name-row">'+
+      '<div class="ind-badge">'+(idx+1)+'</div>'+
+      '<div class="ind-name-field-wrap"><div class="text-field" style="min-height:42px">'+
+        '<input class="text-input" type="text" id="'+s+'-in-'+idx+'" placeholder="Nome do indicador…" value="'+escH(ind.name)+'" oninput="setIndPropDirect(\''+s+'\','+idx+',\'name\',this.value)" />'+
+      '</div></div>'+
+    '</div>'+
+    '<div class="ind-controls-row">'+
+      '<div class="ind-ctrl-group ind-ctrl-type"><span class="ind-ctrl-label">Tipo</span><div class="toggle-group">'+typeBtns+'</div></div>'+
+      '<div class="ind-ctrl-group ind-ctrl-target"><span class="ind-ctrl-label">Valor da meta</span>'+targetField+'</div>'+
+      '<div class="ind-ctrl-group ind-ctrl-scope"><span class="ind-ctrl-label">Divisão</span><div class="toggle-group">'+
+        '<button class="toggle-btn'+scopeIC+'" onclick="setIndProp(\''+s+'\','+idx+',\'scope\',\'individual\')">Individual</button>'+
+        '<button class="toggle-btn'+scopeSC+'" onclick="setIndProp(\''+s+'\','+idx+',\'scope\',\'shared\')">Compartilhada</button>'+
+      '</div></div>'+
+    '</div>';
+
+  setTimeout(function(){
+    var inp=g(s+'-it-'+idx); var wr=g(s+'-wrap-it-'+idx); if(!inp||!wr) return;
+    inp.addEventListener('focus',function(){ wr.classList.add('focused'); });
+    inp.addEventListener('blur', function(){
+      wr.classList.remove('focused');
+      if(ind.type==='Tempo') {
+        var norm=normalizeTimeToMMSS(inp.value);
+        inp.value=norm;
+        stores[s].indicators[idx].target=norm;
+        wr.classList.toggle('has-value', norm!=='');
+        renderResultsGrid(s);
+        return;
+      }
+      var n=fmtInputOnBlur(inp, wr);
+      stores[s].indicators[idx].target = n===null? '' : String(n);
+      renderResultsGrid(s);
+    });
+  },0);
+  return wrap;
+}
+
+window.onIndTargetInput = function(s,idx,val) {
+  stores[s].indicators[idx].target=val;
+  var wrap=g(s+'-wrap-it-'+idx);
+  if(wrap) wrap.classList.toggle('has-value', val.trim()!=='');
+  renderResultsGrid(s);
+};
+
+window.onIndTimeInput = function(s,idx,input) {
+  var val=input.value.replace(/[^0-9:]/g,'');
+  stores[s].indicators[idx].target=val;
+  var wrap=g(s+'-wrap-it-'+idx);
+  if(wrap){ val?wrap.classList.add('has-value'):wrap.classList.remove('has-value'); }
+  renderResultsGrid(s);
+};
+
+window.setIndProp = function(s,idx,prop,val) {
+  stores[s].indicators[idx][prop]=val;
+  var old=g(s+'-ii-'+idx); old.parentNode.replaceChild(buildIndSetupItem(s,idx,stores[s].indicators[idx]),old);
+  renderResultsGrid(s); calcAll(s);
+};
+window.setIndPropDirect = function(s,idx,prop,val) {
+  stores[s].indicators[idx][prop]=val; renderResultsGrid(s);
+};
+
+/* ── Meta change ── */
+window.onMetaChange = function(s){ renderResultsGrid(s); calcAll(s); };
+
+/* ── Sellers ── */
+window.addSeller = function(s) {
+  var input=g(s+'-new-seller'); var name=input.value.trim(); if(!name) return;
+  if(stores[s].sellers.indexOf(name)!==-1){ showToast('Vendedora já cadastrada.'); return; }
+  stores[s].sellers.push(name);
+  if(!stores[s].results[name]) stores[s].results[name]={vendas:0,inds:[false,false,false,false],indVals:['','','','']};
+  input.value=''; renderSellersList(s); renderResultsGrid(s);
+};
+window.removeSeller = function(s,name) {
+  stores[s].sellers=stores[s].sellers.filter(function(n){return n!==name;});
+  delete stores[s].results[name]; renderSellersList(s); renderResultsGrid(s);
+};
+function renderSellersList(s) {
+  var el=g(s+'-sellers-list'); el.innerHTML='';
+  stores[s].sellers.forEach(function(name){
+    var chip=document.createElement('div'); chip.className='seller-chip';
+    chip.innerHTML='<div class="seller-avatar">'+initials(name)+'</div><span class="seller-chip-name">'+escH(name)+'</span><button class="btn-remove" onclick="removeSeller(\''+s+'\',\''+e1Q(name)+'\')">×</button>';
+    el.appendChild(chip);
+  });
+}
+
+/* ── Results grid ── */
+function renderResultsGrid(s) {
+  var el=g(s+'-results'); var bar=g(s+'-summary-bar');
+  if(!stores[s].sellers.length){
+    el.innerHTML='<div class="empty-state"><p>Nenhuma vendedora cadastrada</p><small>Adicione vendedoras no Cadastro de Metas para começar.</small></div>';
+    bar.style.display='none'; return;
+  }
+  bar.style.display=''; el.innerHTML='';
+  stores[s].sellers.forEach(function(name){
+    if(!stores[s].results[name]) stores[s].results[name]={vendas:0,inds:[false,false,false,false],indVals:['','','','']};
+    if(!stores[s].results[name].indVals) stores[s].results[name].indVals=['','','',''];
+    el.appendChild(buildResultCard(s,name));
+  });
+  calcAll(s);
+}
+
+function buildResultCard(s,name) {
+  var cfg=STORE_CFG[s];
+  var res=stores[s].results[name]; var sid=safeId(name);
+  var n=stores[s].sellers.length||1;
+  var m1=parseBRNumber((g(s+'-m1')||{}).value)||0;
+  var m2=parseBRNumber((g(s+'-m2')||{}).value)||0;
+  var pm1=m1>0?m1/n:0; var pm2=m2>0?m2/n:0;
+
+  var card=document.createElement('div'); card.className='seller-result-card'; card.id='rc-'+s+'-'+sid;
+
+  /* Header */
+  var hdr=document.createElement('div'); hdr.className='src-header open';
+  hdr.innerHTML=
+    '<div class="src-avatar">'+initials(name)+'</div>'+
+    '<span class="src-name">'+escH(name)+'</span>'+
+    '<div class="src-info-pills" id="sh-pills-'+s+'-'+sid+'">'+
+      '<span class="src-info-pill sip-none" id="sh-metapill-'+s+'-'+sid+'">Abaixo M1</span>'+
+      '<span class="src-info-pill sip-inds" id="sh-indpill-'+s+'-'+sid+'">0/4 ind.</span>'+
+    '</div>'+
+    '<div class="src-summary"><div class="src-commission" id="sh-com-'+s+'-'+sid+'">R$ 0,00</div><div class="src-pct" id="sh-pct-'+s+'-'+sid+'">0,00% de comissão</div></div>'+
+    '<svg class="src-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+  hdr.addEventListener('click',function(){ hdr.classList.toggle('open'); card.querySelector('.src-body').classList.toggle('collapsed'); });
+  card.appendChild(hdr);
+
+  /* Body */
+  var body=document.createElement('div'); body.className='src-body';
+
+  /* Meta pills */
+  if(m1>0||m2>0){
+    var pd=document.createElement('div');
+    pd.innerHTML='<p class="meta-pills-label">Meta individual desta vendedora (total da loja ÷ '+n+' vendedoras)</p><div class="meta-pills">'+
+      (m1>0?'<div class="meta-pill"><div class="meta-pill-label">M1 → comissão '+fmtBRL(cfg.m1Pct,2)+'%</div><div class="meta-pill-val" id="mpp1-'+s+'-'+sid+'">'+toR(pm1)+'</div><div class="meta-pill-sub">'+toR(m1)+' ÷ '+n+'</div></div>':'')+
+      (m2>0?'<div class="meta-pill"><div class="meta-pill-label">M2 → comissão '+fmtBRL(cfg.m2Pct,2)+'%</div><div class="meta-pill-val" id="mpp2-'+s+'-'+sid+'">'+toR(pm2)+'</div><div class="meta-pill-sub">'+toR(m2)+' ÷ '+n+'</div></div>':'')+
+    '</div>';
+    body.appendChild(pd);
+  }
+
+  /* Vendas */
+  var vd=document.createElement('div');
+  vd.innerHTML=
+    '<div class="input-group"><label>Total de vendas realizadas</label>'+
+    '<div class="currency-field'+(res.vendas?' has-value':'')+'" id="'+s+'-wrap-sv-'+sid+'"><span class="currency-prefix">R$</span>'+
+    '<input class="currency-input" type="text" inputmode="decimal" id="'+s+'-sv-'+sid+'" placeholder="0,00" autocomplete="off" value="'+(res.vendas?fmtBRL(res.vendas,2):'')+'" oninput="onVendasInput(\''+s+'\',\''+e1Q(name)+'\',this.value)" /></div></div>'+
+    '<div class="prog-wrap"><div class="prog-top"><span>Progresso vs meta individual</span><span id="pp-'+s+'-'+sid+'">—</span></div>'+
+    '<div class="prog-track"><div class="prog-fill" id="pf-'+s+'-'+sid+'"></div></div>'+
+    '<div class="prog-ticks"><span>R$\u00a00</span><span id="pt1-'+s+'-'+sid+'">M1</span><span id="pt2-'+s+'-'+sid+'">M2</span></div></div>'+
+    '<div class="status-row"><span class="status-lbl">Situação:</span><span class="badge b-m0" id="pbadge-'+s+'-'+sid+'">Abaixo de M1</span></div>';
+  body.appendChild(vd);
+
+  /* Indicators */
+  var indsDiv=document.createElement('div');
+  var indsHtml='<div class="ind-result-section-label">Indicadores</div><div class="ind-result-list">';
+  for(var i=0;i<4;i++){
+    var ind=stores[s].indicators[i];
+    var iName=ind.name||('Indicador '+(i+1));
+    var nDiv=(ind.scope==='shared')?n:1;
+    var tVal2=parseBRNumber(ind.target)||0; var perS=tVal2/nDiv;
+    var prefix2=ind.type==='R$'?'R$':(ind.type==='%'?'%':(ind.type==='Tempo'?'⏱':'#'));
+    var onCls=(res.inds&&res.inds[i])?' on':'';
+    var scopeTag=ind.scope==='shared'?'<span class="ind-scope-tag tag-shared">Compartilhada</span>':'<span class="ind-scope-tag tag-ind">Individual</span>';
+    var indBonusLabel=cfg.indMode==='pct'?('+'+fmtBRL(cfg.indAmt,2)+'%'):('+'+toR(cfg.indAmt));
+    var tgtDisp='';
+    if(ind.target){
+      if(ind.type==='R$') tgtDisp='Meta: '+toR(perS);
+      else if(ind.type==='%') tgtDisp='Meta: '+fmtBRL(perS,2)+'%';
+      else if(ind.type==='Tempo') tgtDisp='Meta: '+ind.target;
+      else tgtDisp='Meta: '+fmtBRL(perS,0)+' unid.';
+      if(ind.scope==='shared'&&nDiv>1) tgtDisp+=' (÷'+nDiv+')';
+    }
+    var realizado=res.indVals&&res.indVals[i]?res.indVals[i]:'';
+    var rInitVal=realizado?(ind.type==='Tempo'?realizado:fmtBRL(parseBRNumber(realizado)||0,2)):'';
+    var rWrapHV=realizado?' has-value':'';
+
+    var realizadoFieldHtml;
+    if(ind.type==='Tempo'){
+      realizadoFieldHtml=
+        '<div class="ind-realizado-wrap'+rWrapHV+'" id="'+s+'-rwrap-'+sid+'-'+i+'">'+
+          '<span class="ind-realizado-prefix">⏱</span>'+
+          '<input class="ind-realizado-input" type="text" id="'+s+'-ri-'+sid+'-'+i+'" maxlength="9" placeholder="00:00" value="'+escH(realizado)+'"'+
+            ' oninput="onRealizadoTimeInput(\''+s+'\',\''+e1Q(name)+'\','+i+',this)"'+
+            ' onfocus="document.getElementById(\''+s+'-rwrap-'+sid+'-'+i+'\').classList.add(\'focused\')"'+
+            ' onblur="formatRealizadoTimeOnBlur(\''+s+'\',\''+e1Q(name)+'\','+i+',this)" />'+
+        '</div>';
+    } else {
+      realizadoFieldHtml=
+        '<div class="ind-realizado-wrap'+rWrapHV+'" id="'+s+'-rwrap-'+sid+'-'+i+'">'+
+          '<span class="ind-realizado-prefix" id="'+s+'-rpfx-'+sid+'-'+i+'">'+prefix2+'</span>'+
+          '<input class="ind-realizado-input" type="text" inputmode="decimal" id="'+s+'-ri-'+sid+'-'+i+'" placeholder="0,00" autocomplete="off" value="'+escH(rInitVal)+'"'+
+            ' oninput="onRealizadoInput(\''+s+'\',\''+e1Q(name)+'\','+i+',this.value)"'+
+            ' onfocus="document.getElementById(\''+s+'-rwrap-'+sid+'-'+i+'\').classList.add(\'focused\')"'+
+            ' onblur="formatRealizadoOnBlur(\''+s+'\',\''+e1Q(name)+'\','+i+',this)" />'+
+        '</div>';
+    }
+
+    indsHtml+=
+      '<div class="ind-result-item'+onCls+'" id="ir-'+s+'-'+sid+'-'+i+'">'+
+        '<div class="ind-result-top" onclick="toggleInd(\''+s+'\',\''+e1Q(name)+'\','+i+')">'+
+          '<div class="ind-box"></div><span class="ind-result-name">'+escH(iName)+'</span>'+
+          '<div class="ind-result-right"><span class="ind-pct-label">'+indBonusLabel+'</span>'+scopeTag+'</div>'+
+        '</div>'+
+        '<div class="ind-result-body"><span class="ind-realizado-label">Realizado:</span>'+realizadoFieldHtml+
+          (tgtDisp?'<span class="ind-target-display">'+escH(tgtDisp)+'</span>':'')+
+        '</div>'+
+      '</div>';
+  }
+  indsHtml+='</div><p class="ind-footer" id="ind-footer-'+s+'-'+sid+'"><strong>0</strong> de 4 batidos → bônus de <strong>0,00%</strong></p>';
+  indsDiv.innerHTML=indsHtml;
+  body.appendChild(indsDiv);
+
+  /* Wire vendas field */
+  setTimeout(function(){
+    var inp=g(s+'-sv-'+sid); var wr=g(s+'-wrap-sv-'+sid); if(!inp||!wr) return;
+    inp.addEventListener('focus',function(){ wr.classList.add('focused'); });
+    inp.addEventListener('blur', function(){
+      wr.classList.remove('focused');
+      var n=fmtInputOnBlur(inp, wr);
+      stores[s].results[name].vendas = n===null? 0 : n;
+      calcSeller(s,name); updateSummary(s);
+    });
+  },0);
+
+  /* Breakdown */
+  var bdDiv=document.createElement('div');
+  bdDiv.innerHTML=
+    '<div class="result-card"><div class="result-head"><p>Detalhamento da comissão</p></div><div class="result-body">'+
+    '<div class="rr"><span class="rl main">Vendas realizadas</span><span class="rv" id="bd-v-'+s+'-'+sid+'">'+toR(0)+'</span></div>'+
+    '<div class="rr"><span class="rl main">Comissão total</span><span class="rv g" id="bd-c-'+s+'-'+sid+'">'+toR(0)+'</span></div>'+
+    '<div class="rr sub"><div class="col"><span class="rl sub">Meta financeira</span><div class="detail" id="bd-md-'+s+'-'+sid+'">—</div></div><span class="rv m" id="bd-mv-'+s+'-'+sid+'">'+toR(0)+'</span></div>'+
+    '<div class="rr sub"><div class="col"><span class="rl sub">Indicadores</span><div class="detail" id="bd-id-'+s+'-'+sid+'">—</div></div><span class="rv m" id="bd-iv-'+s+'-'+sid+'">'+toR(0)+'</span></div>'+
+    '<div class="rr final"><span class="rl main" style="font-size:15px">Total de comissão</span><span class="rv big" id="bd-tot-'+s+'-'+sid+'">'+toR(0)+'</span></div>'+
+    '</div></div>';
+  body.appendChild(bdDiv);
+  card.appendChild(body);
+  return card;
+}
+
+/* ── Interactions ── */
+window.onVendasInput = function(s,name,v) {
+  stores[s].results[name].vendas=parseBRNumber(v)||0;
+  var sid=safeId(name); var wrap=g(s+'-wrap-sv-'+sid);
+  if(wrap) wrap.classList.toggle('has-value', v.trim()!=='');
+  calcSeller(s,name); updateSummary(s);
+};
+window.onRealizadoInput = function(s,name,idx,v) {
+  if(!stores[s].results[name].indVals) stores[s].results[name].indVals=['','','',''];
+  stores[s].results[name].indVals[idx]=v;
+  var sid=safeId(name); var wrap=g(s+'-rwrap-'+sid+'-'+idx);
+  if(wrap) wrap.classList.toggle('has-value', v.trim()!=='');
+};
+window.formatRealizadoOnBlur = function(s,name,idx,input) {
+  var sid=safeId(name); var wrap=g(s+'-rwrap-'+sid+'-'+idx);
+  if(wrap) wrap.classList.remove('focused');
+  var n=fmtInputOnBlur(input, wrap);
+  if(!stores[s].results[name].indVals) stores[s].results[name].indVals=['','','',''];
+  stores[s].results[name].indVals[idx] = n===null? '' : String(n);
+};
+window.onRealizadoTimeInput = function(s,name,idx,input) {
+  var v=input.value.replace(/[^0-9:]/g,'');
+  if(!stores[s].results[name].indVals) stores[s].results[name].indVals=['','','',''];
+  stores[s].results[name].indVals[idx]=v;
+  var wrap=g(s+'-rwrap-'+safeId(name)+'-'+idx);
+  if(wrap){ v?wrap.classList.add('has-value'):wrap.classList.remove('has-value'); }
+};
+window.formatRealizadoTimeOnBlur = function(s,name,idx,input) {
+  var sid=safeId(name); var wrap=g(s+'-rwrap-'+sid+'-'+idx);
+  if(wrap) wrap.classList.remove('focused');
+  var norm=normalizeTimeToMMSS(input.value);
+  input.value=norm;
+  if(!stores[s].results[name].indVals) stores[s].results[name].indVals=['','','',''];
+  stores[s].results[name].indVals[idx]=norm;
+  if(wrap) wrap.classList.toggle('has-value', norm!=='');
+};
+window.toggleInd = function(s,name,idx) {
+  stores[s].results[name].inds[idx]=!stores[s].results[name].inds[idx];
+  var el=g('ir-'+s+'-'+safeId(name)+'-'+idx);
+  if(el) el.classList.toggle('on',stores[s].results[name].inds[idx]);
+  calcSeller(s,name); updateSummary(s);
+};
+
+function calcAll(s){ stores[s].sellers.forEach(function(n){ calcSeller(s,n); }); updateSummary(s); }
+window.calcAll=calcAll;
+
+function calcSeller(s,name) {
+  var cfg=STORE_CFG[s];
+  var sid=safeId(name); var res=stores[s].results[name]; if(!res) return;
+  var vendas=res.vendas||0;
+  var m1=parseBRNumber((g(s+'-m1')||{}).value)||0;
+  var m2=parseBRNumber((g(s+'-m2')||{}).value)||0;
+  var n=stores[s].sellers.length||1; var pm1=m1/n; var pm2=m2/n;
+
+  var metaPct=cfg.baseline; var bCls='badge b-m0'; var bTxt='Abaixo de M1'; var tier=0;
+  var metaLbl=cfg.baseline>0?('Nenhuma (mínimo '+fmtBRL(cfg.baseline,2)+'%)'):'Nenhuma meta atingida (0%)';
+  if(m2>0&&vendas>=pm2){ metaPct=cfg.m2Pct; metaLbl='M2 atingida'; bCls='badge b-m2'; bTxt='Meta M2 atingida!'; tier=2; }
+  else if(m1>0&&vendas>=pm1){ metaPct=cfg.m1Pct; metaLbl='M1 atingida'; bCls='badge b-m1'; bTxt='Meta M1 atingida'; tier=1; }
+
+  var hits=(res.inds||[]).filter(Boolean).length;
+  var indPct=0, indR=0;
+  if(cfg.indMode==='pct'){ indPct=hits*cfg.indAmt; indR=vendas*(indPct/100); }
+  else { indR=hits*cfg.indAmt; }
+
+  var metaR=vendas*(metaPct/100); var com=metaR+indR;
+  var pctLabel=cfg.indMode==='pct'?(fmtBRL(metaPct+indPct,2)+'% de comissão'):(fmtBRL(metaPct,2)+'% da venda + indicadores');
+  var refM=pm2>0?pm2:(pm1>0?pm1:1); var maxPr=pm2>0?pm2:(pm1>0?pm1*1.5:1);
+  var barP=vendas>0&&maxPr>0?Math.min(vendas/maxPr*100,100):0;
+
+  se('sh-com-'+s+'-'+sid, toR(com));
+  se('sh-pct-'+s+'-'+sid, pctLabel);
+  sc('pbadge-'+s+'-'+sid, bCls); se('pbadge-'+s+'-'+sid, bTxt);
+
+  var mpEl=g('sh-metapill-'+s+'-'+sid);
+  if(mpEl){ mpEl.className='src-info-pill '+(tier===2?'sip-m2':(tier===1?'sip-m1':'sip-none')); mpEl.textContent=tier===2?'M2 ✓':(tier===1?'M1 ✓':'Abaixo M1'); }
+  var ipEl=g('sh-indpill-'+s+'-'+sid);
+  if(ipEl){ ipEl.textContent=hits+'/4 ind.'; ipEl.className='src-info-pill sip-inds'+(hits===4?' sip-m2':''); }
+
+  ss('pf-'+s+'-'+sid,'width',barP.toFixed(1)+'%');
+  se('pp-'+s+'-'+sid, refM>0?fmtBRL(vendas/refM*100,1)+'%':'—');
+  se('pt1-'+s+'-'+sid, pm1>0?'M1\u00a0'+fmtK(pm1):'M1');
+  se('pt2-'+s+'-'+sid, pm2>0?'M2\u00a0'+fmtK(pm2):'M2');
+
+  var fEl=g('ind-footer-'+s+'-'+sid);
+  if(fEl){
+    var indBonusTxt=cfg.indMode==='pct'?(fmtBRL(indPct,2)+'%'):toR(indR);
+    fEl.innerHTML='<strong>'+hits+'</strong> de 4 batidos → bônus de <strong>'+indBonusTxt+'</strong>';
+  }
+
+  se('bd-v-'+s+'-'+sid,  toR(vendas));
+  se('bd-c-'+s+'-'+sid,  toR(com));
+  se('bd-md-'+s+'-'+sid, metaLbl+'\u2002|\u2002'+fmtBRL(metaPct,2)+'%');
+  se('bd-mv-'+s+'-'+sid, toR(metaR));
+  se('bd-id-'+s+'-'+sid, cfg.indMode==='pct'?(hits+' de 4\u2002|\u2002'+fmtBRL(indPct,2)+' p.p = '+fmtBRL(indPct,2)+'%'):(hits+' de 4\u2002|\u2002'+toR(cfg.indAmt)+' cada'));
+  se('bd-iv-'+s+'-'+sid, toR(indR));
+  se('bd-tot-'+s+'-'+sid, toR(com));
+  se('mpp1-'+s+'-'+sid, pm1>0?toR(pm1):'—');
+  se('mpp2-'+s+'-'+sid, pm2>0?toR(pm2):'—');
+}
+
+function updateSummary(s) {
+  var cfg=STORE_CFG[s];
+  var tv=0,tc=0;
+  var m1=parseBRNumber((g(s+'-m1')||{}).value)||0;
+  var m2=parseBRNumber((g(s+'-m2')||{}).value)||0;
+  var n=stores[s].sellers.length||1;
+  stores[s].sellers.forEach(function(name){
+    var res=stores[s].results[name]; if(!res) return;
+    var vendas=res.vendas||0; var pm1=m1/n; var pm2=m2/n;
+    var mp=cfg.baseline;
+    if(m2>0&&vendas>=pm2) mp=cfg.m2Pct; else if(m1>0&&vendas>=pm1) mp=cfg.m1Pct;
+    var hits=(res.inds||[]).filter(Boolean).length;
+    var indR=cfg.indMode==='pct'?(vendas*((hits*cfg.indAmt)/100)):(hits*cfg.indAmt);
+    tv+=vendas; tc+= vendas*(mp/100) + indR;
+  });
+  se(s+'-sc-n', stores[s].sellers.length);
+  se(s+'-sc-v', toR(tv));
+  se(s+'-sc-c', toR(tc));
+}
+
+/* ── Save / Load / Clear ── */
+window.saveStore = function(s) {
+  stores[s].m1=parseBRNumber((g(s+'-m1')||{}).value)||0;
+  stores[s].m2=parseBRNumber((g(s+'-m2')||{}).value)||0;
+  stores[s].obs=(g(s+'-obs')||{}).value||'';
+  for(var i=0;i<4;i++){
+    var ne=g(s+'-in-'+i); var te=g(s+'-it-'+i);
+    if(ne) stores[s].indicators[i].name=ne.value||'';
+    if(te) stores[s].indicators[i].target=te.value||'';
+  }
+  stores[s].sellers.forEach(function(name){
+    var res=stores[s].results[name]; if(!res) return;
+    var sid=safeId(name); var ve=g(s+'-sv-'+sid); if(ve) res.vendas=parseBRNumber(ve.value)||0;
+    if(!res.indVals) res.indVals=['','','',''];
+    for(var i=0;i<4;i++){ var re=g(s+'-ri-'+sid+'-'+i); if(re) res.indVals[i]=re.value||''; }
+  });
+  try{ localStorage.setItem('gc5-'+s, JSON.stringify(stores[s])); showToast('✓ Salvo com sucesso!'); }
+  catch(e){ showToast('Erro ao salvar.'); }
+};
+
+function loadStore(s) {
+  try{
+    var raw=localStorage.getItem('gc5-'+s); if(!raw) return;
+    var d=JSON.parse(raw);
+    while(d.indicators.length<4) d.indicators.push({name:'',type:'R$',target:'',scope:'individual'});
+    d.indicators.forEach(function(ind){ if(!ind.scope) ind.scope='individual'; if(!ind.type) ind.type='R$'; });
+    if(!d.results) d.results={};
+    stores[s]=d;
+  }catch(e){ return; }
+  var st=stores[s];
+  setCurrencyValue(s+'-m1', st.m1);
+  setCurrencyValue(s+'-m2', st.m2);
+  var obsEl=g(s+'-obs'); if(obsEl) obsEl.value=st.obs||'';
+  renderIndSetup(s); renderSellersList(s); renderResultsGrid(s);
+  st.sellers.forEach(function(name){
+    var res=st.results[name]; if(!res) return;
+    if(!res.indVals) res.indVals=['','','',''];
+    var sid=safeId(name);
+    var ve=g(s+'-sv-'+sid);
+    if(ve&&res.vendas){ ve.value=fmtBRL(res.vendas,2); var vw=g(s+'-wrap-sv-'+sid); if(vw) vw.classList.add('has-value'); }
+    for(var i=0;i<4;i++){
+      var irEl=g('ir-'+s+'-'+sid+'-'+i); if(irEl&&res.inds&&res.inds[i]) irEl.classList.add('on');
+      var re=g(s+'-ri-'+sid+'-'+i);
+      if(re&&res.indVals[i]){
+        var ind=st.indicators[i]; var rw2=g(s+'-rwrap-'+sid+'-'+i);
+        re.value = (ind&&ind.type==='Tempo') ? res.indVals[i] : fmtBRL(parseBRNumber(res.indVals[i])||0,2);
+        if(rw2) rw2.classList.add('has-value');
+      }
+    }
+    calcSeller(s,name);
+  });
+  updateSummary(s);
+}
+
+window.clearStore = function(s) {
+  if(!confirm('Apagar TODOS os dados? Esta ação não pode ser desfeita.')) return;
+  try{ localStorage.removeItem('gc5-'+s); }catch(e){}
+  stores[s]=defaultStore();
+  setCurrencyValue(s+'-m1', 0);
+  setCurrencyValue(s+'-m2', 0);
+  var obsEl=g(s+'-obs'); if(obsEl) obsEl.value='';
+  renderIndSetup(s); renderSellersList(s); renderResultsGrid(s);
+  showToast('Dados apagados.');
+};
+
+/* ════════════════════════════════════════════
+   EXPORT PNG
+════════════════════════════════════════════ */
+window.exportPNG = function(s) {
+  var overlay=g('export-overlay'); overlay.classList.add('show');
+  var wrapId = s==='D'?'D-page-wrap':(s+'-page-wrap');
+  var wrap=g(wrapId);
+  if(!wrap){ overlay.classList.remove('show'); showToast('Erro: painel não encontrado.'); return; }
+  var origStyle=wrap.getAttribute('style')||'';
+  wrap.style.gridTemplateColumns='480px 1fr'; wrap.style.width='max-content';
+  setTimeout(function(){
+    html2canvas(wrap,{ scale:2, useCORS:true, backgroundColor:'#F2F1ED', scrollX:0, scrollY:0, windowWidth:wrap.scrollWidth+80, width:wrap.scrollWidth, height:wrap.scrollHeight })
+    .then(function(canvas){
+      wrap.setAttribute('style',origStyle); overlay.classList.remove('show');
+      var now=new Date(); var pad=function(n){return String(n).padStart(2,'0');};
+      var storeName=s==='A'?'Botica':(s==='B'?'Lubotica':'LojaDigital');
+      var filename=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+'_'+pad(now.getHours())+'-'+pad(now.getMinutes())+'-'+pad(now.getSeconds())+'_'+storeName+'.png';
+      var link=document.createElement('a'); link.download=filename; link.href=canvas.toDataURL('image/png'); link.click();
+      showToast('✓ Exportado: '+filename);
+    }).catch(function(err){
+      wrap.setAttribute('style',origStyle); overlay.classList.remove('show');
+      showToast('Erro ao exportar.'); console.error(err);
+    });
+  },120);
+};
+
+/* ════════════════════════════════════════════
+   EXPORT EXCEL (resumo para folha de pagamento — 1 aba por loja)
+════════════════════════════════════════════ */
+function round2(n) { return Math.round((n||0)*100)/100; }
+
+window.exportExcelAll = function() {
+  if (typeof ExcelJS === 'undefined') { showToast('Erro: biblioteca de Excel não carregou. Verifique sua conexão.'); return; }
+
+  var STORE_ORDER = ['A','B','D'];
+  var STORE_NAME  = { A:'Botica', B:'Lubotica', D:'Loja Digital' };
+  /* Cores por loja: Botica/Lubotica em verde, Loja Digital em roxo (mesma paleta da página) */
+  var STORE_FILL  = { A:'FF1D9E75', B:'FF1D9E75', D:'FF8A3865' }; /* banners (sólido) */
+  var STORE_LIGHT = { A:'FFE1F5EE', B:'FFE1F5EE', D:'FFF8E7F0' }; /* cabeçalhos de coluna (tom claro) */
+  var STORE_DARK  = { A:'FF0F6E56', B:'FF0F6E56', D:'FF68274A' }; /* texto sobre o tom claro */
+
+  var wb = new ExcelJS.Workbook();
+  var anyData = false;
+
+  var now = new Date();
+  var pad = function(v){ return String(v).padStart(2,'0'); };
+  var nowStr = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+' '+pad(now.getHours())+':'+pad(now.getMinutes());
+
+  var FMT_MONEY = '"R$" #,##0.00';
+  var FMT_PCT   = '0.00%';
+  var FMT_NUM   = '#,##0.00';
+
+  STORE_ORDER.forEach(function(s){
+    var cfg = STORE_CFG[s];
+    var st  = stores[s];
+    var m1  = parseBRNumber((g(s+'-m1')||{}).value)||0;
+    var m2  = parseBRNumber((g(s+'-m2')||{}).value)||0;
+    var n   = st.sellers.length||1;
+    var fillColor=STORE_FILL[s], lightColor=STORE_LIGHT[s], darkColor=STORE_DARK[s];
+
+    var ws = wb.addWorksheet(STORE_NAME[s]);
+
+    /* ── Helpers de estilo ── */
+    function cell(r,c){ return ws.getCell(r,c); }
+    function setBanner(r,c1,c2,text){
+      ws.mergeCells(r,c1,r,c2);
+      var cl=cell(r,c1); cl.value=text;
+      cl.font={bold:true,color:{argb:'FFFFFFFF'}};
+      cl.fill={type:'pattern',pattern:'solid',fgColor:{argb:fillColor}};
+      cl.alignment={horizontal:'center',vertical:'middle'};
+    }
+    function setColHeader(r,c,text){
+      var cl=cell(r,c); cl.value=text;
+      cl.font={bold:true,color:{argb:darkColor}};
+      cl.fill={type:'pattern',pattern:'solid',fgColor:{argb:lightColor}};
+      cl.alignment={vertical:'middle',wrapText:true};
+    }
+    function setNum(r,c,val,fmt,bold){
+      var cl=cell(r,c); cl.value=val; if(fmt) cl.numFmt=fmt;
+      if(bold) cl.font=Object.assign({},cl.font,{bold:true});
+    }
+    function setText(r,c,text,bold){
+      var cl=cell(r,c); cl.value=text;
+      if(bold) cl.font=Object.assign({},cl.font,{bold:true});
+    }
+
+    /* ── Quais indicadores têm ao menos um valor "Realizado" preenchido ── */
+    var indHasData=[false,false,false,false];
+    st.sellers.forEach(function(name){
+      var res=st.results[name]; if(!res||!res.indVals) return;
+      for (var i=0;i<4;i++){ if (res.indVals[i]) indHasData[i]=true; }
+    });
+    var activeIdx=[0,1,2,3].filter(function(i){ return indHasData[i]; });
+    var hasExtra=activeIdx.length>0;
+    var mainCols=9; /* A..I */
+    var extraStartCol = hasExtra ? mainCols+2+1 : mainCols+1; /* 1-indexed; deixa 2 colunas em branco (até K), dados extras a partir de L */
+
+    var r=1;
+    setText(r,1,'Loja: '+STORE_NAME[s]); cell(r,1).font={bold:true,color:{argb:'FFFFFFFF'}}; cell(r,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:fillColor}};
+    r++;
+    setText(r,1,'Gerado em: '+nowStr); r++;
+    var obsVal = ((g(s+'-obs')||{}).value || st.obs || '').trim();
+    setText(r,1,'Observação: '+(obsVal?obsVal:'—')); r++;
+    r++; /* linha em branco */
+
+    /* Metas financeiras */
+    setBanner(r,1,2,'Metas Financeiras'); r++;
+    setText(r,1,'Meta M1 (R$)'); setNum(r,2,round2(m1),FMT_MONEY); r++;
+    setText(r,1,'Meta M2 (R$)'); setNum(r,2,round2(m2),FMT_MONEY); r++;
+    r++; /* linha em branco */
+
+    /* Configuração dos indicadores */
+    setBanner(r,1,4,'Indicadores configurados'); r++;
+    setColHeader(r,1,'Indicador'); setColHeader(r,2,'Tipo'); setColHeader(r,3,'Meta'); setColHeader(r,4,'Divisão');
+    r++;
+    for (var ci=0; ci<4; ci++) {
+      var cind=st.indicators[ci];
+      var cLabel=(cind.name&&cind.name.trim())?cind.name.trim():('Indicador '+(ci+1));
+      var cTipo=cind.type||'R$';
+      var cDivisao=cind.scope==='shared'?'Compartilhada':'Individual';
+      setText(r,1,cLabel); setText(r,2,cTipo);
+      if (!cind.target) { setText(r,3,''); }
+      else if (cTipo==='Tempo') { setText(r,3,cind.target); }
+      else if (cTipo==='%') { setNum(r,3, round2(parseBRNumber(cind.target)||0)/100, FMT_PCT); }
+      else if (cTipo==='QTD') { setNum(r,3, round2(parseBRNumber(cind.target)||0), FMT_NUM); }
+      else { setNum(r,3, round2(parseBRNumber(cind.target)||0), FMT_MONEY); }
+      setText(r,4,cDivisao);
+      r++;
+    }
+    r++; r++; /* duas linhas em branco */
+
+    /* ── Cabeçalho mesclado dos grupos ── */
+    var groupRow=r;
+    setBanner(r,3,6,'Comissão Financeira');
+    setBanner(r,7,9,'Comissão por Indicador');
+    r++;
+
+    /* ── Cabeçalho das colunas ── */
+    var headerRowIdx=r;
+    var headerLabels=['Vendedora','Total a Receber (R$)','Total de Vendas (R$)','Meta Atingida','Comissão Financeira (%)','Valor Comissão Financeira (R$)','Indicadores Batidos','Comissão por Indicador (%)','Valor Bônus Indicadores (R$)'];
+    headerLabels.forEach(function(lbl,i){ setColHeader(headerRowIdx, i+1, lbl); });
+    if (hasExtra) {
+      activeIdx.forEach(function(i,pos){
+        var ind=st.indicators[i];
+        var label=(ind.name&&ind.name.trim())?ind.name.trim():('Indicador '+(i+1));
+        setColHeader(headerRowIdx, extraStartCol+pos, label+' - Realizado');
+      });
+    }
+    r++;
+    var dataRowsStart=r;
+
+    var totVendas=0, totFin=0, totInd=0, totGeral=0;
+    st.sellers.forEach(function(name){
+      var res=st.results[name]; if(!res) return;
+      var vendas=res.vendas||0;
+      var pm1=m1/n, pm2=m2/n;
+      var metaPct=cfg.baseline, metaLbl='Nenhuma';
+      if (m2>0 && vendas>=pm2) { metaPct=cfg.m2Pct; metaLbl='M2'; }
+      else if (m1>0 && vendas>=pm1) { metaPct=cfg.m1Pct; metaLbl='M1'; }
+      var hits=(res.inds||[]).filter(Boolean).length;
+      var indPctVal = cfg.indMode==='pct' ? hits*cfg.indAmt : null; /* pontos percentuais atingidos via indicadores */
+      var indR = cfg.indMode==='pct' ? vendas*((hits*cfg.indAmt)/100) : hits*cfg.indAmt;
+      var finR = vendas*(metaPct/100);
+      var total = finR+indR;
+      totVendas+=vendas; totFin+=finR; totInd+=indR; totGeral+=total;
+      anyData=true;
+
+      setText(r,1,name);
+      setNum(r,2,round2(total),FMT_MONEY,true); /* Total a Receber — em negrito */
+      setNum(r,3,round2(vendas),FMT_MONEY);
+      setText(r,4,metaLbl);
+      setNum(r,5,round2(metaPct)/100,FMT_PCT);
+      setNum(r,6,round2(finR),FMT_MONEY);
+      setText(r,7,hits+'/4');
+      if (indPctVal===null) setText(r,8,'—'); else setNum(r,8,round2(indPctVal)/100,FMT_PCT);
+      setNum(r,9,round2(indR),FMT_MONEY);
+
+      if (hasExtra) {
+        activeIdx.forEach(function(i,pos){
+          var ind=st.indicators[i];
+          var raw=(res.indVals&&res.indVals[i])?res.indVals[i]:'';
+          var c=extraStartCol+pos;
+          if (!raw) { setText(r,c,''); return; }
+          if (ind.type==='Tempo') setText(r,c,raw);
+          else if (ind.type==='%') setNum(r,c, round2(parseBRNumber(raw)||0)/100, FMT_PCT);
+          else if (ind.type==='QTD') setNum(r,c, round2(parseBRNumber(raw)||0), FMT_NUM);
+          else setNum(r,c, round2(parseBRNumber(raw)||0), FMT_MONEY);
+        });
+      }
+      r++;
+    });
+
+    var sellerCount=st.sellers.length;
+    if (sellerCount===0) { setText(r,1,'(nenhuma vendedora cadastrada)'); r++; }
+
+    var totalRowIdx=r;
+    setText(r,1,'TOTAL',true);
+    setNum(r,2,round2(totGeral),FMT_MONEY,true);
+    setNum(r,3,round2(totVendas),FMT_MONEY,true);
+    setNum(r,6,round2(totFin),FMT_MONEY,true);
+    setNum(r,9,round2(totInd),FMT_MONEY,true);
+
+    /* ── Larguras das colunas ── */
+    ws.getColumn(1).width=24; ws.getColumn(2).width=20; ws.getColumn(3).width=18;
+    ws.getColumn(4).width=14; ws.getColumn(5).width=20; ws.getColumn(6).width=24;
+    ws.getColumn(7).width=16; ws.getColumn(8).width=20; ws.getColumn(9).width=22;
+    if (hasExtra) {
+      ws.getColumn(10).width=2; ws.getColumn(11).width=2;
+      activeIdx.forEach(function(_,pos){ ws.getColumn(extraStartCol+pos).width=22; });
+    }
+  });
+
+  if (!anyData) { showToast('Nenhuma vendedora cadastrada em nenhuma loja ainda.'); return; }
+
+  var filename='Folha_Comissoes_'+now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+'.xlsx';
+  wb.xlsx.writeBuffer().then(function(buffer){
+    var blob=new Blob([buffer],{type:'application/octet-stream'});
+    var url=URL.createObjectURL(blob);
+    var link=document.createElement('a'); link.href=url; link.download=filename;
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    setTimeout(function(){ URL.revokeObjectURL(url); },1000);
+    showToast('✓ Excel exportado: '+filename);
+  }).catch(function(err){
+    showToast('Erro ao exportar Excel.'); console.error(err);
+  });
+};
+
+/* ════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════ */
+var toastTimer;
+function showToast(msg){
+  var el=g('toast'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){ el.classList.remove('show'); },3000);
+}
+window.showToast=showToast;
+
+/* ════════════════════════════════════════════
+   BOOT
+════════════════════════════════════════════ */
+['A','B','D'].forEach(function(s){ renderIndSetup(s); loadStore(s); });
+
+})();
+</script>
+</body>
+</html>
